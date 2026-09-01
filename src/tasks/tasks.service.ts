@@ -4,12 +4,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Priority, TaskStatus } from '@prisma/client';
+import { Prisma, Priority, Recurrence, TaskStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CategoriesService } from '../categories/categories.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto';
+import {
+  RecurrenceService,
+  type RecurringTaskInput,
+} from './recurrence.service';
 import type { TaskView } from './tasks.types';
 
 @Injectable()
@@ -17,6 +21,7 @@ export class TasksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly categoriesService: CategoriesService,
+    private readonly recurrence: RecurrenceService,
   ) {}
 
   async create(userId: string, dto: CreateTaskDto): Promise<TaskView> {
@@ -24,6 +29,8 @@ export class TasksService {
       await this.assertOwnCategory(userId, dto.categoryId);
     }
     this.assertDateOrder(dto.startTime, dto.endTime);
+    const recurrence = dto.recurrence ?? Recurrence.NONE;
+    this.assertRecurrencePayload(recurrence, dto.recurrenceDays);
 
     const task = await this.prisma.task.create({
       data: {
@@ -36,7 +43,9 @@ export class TasksService {
         status: dto.status,
         categoryId: dto.categoryId ?? null,
         userId,
-        isRecurring: dto.isRecurring ?? false,
+        isRecurring: recurrence !== Recurrence.NONE,
+        recurrence,
+        recurrenceDays: dto.recurrenceDays ?? [],
       },
     });
     return this.toView(task);
@@ -68,7 +77,14 @@ export class TasksService {
       where,
       orderBy: [{ dueDate: 'asc' }, { createdAt: 'desc' }],
     });
-    return tasks.map((t) => this.toView(t));
+
+    const window = this.buildWindow(query);
+    const expanded = this.recurrence.expand(
+      tasks.map((t) => this.toRecurringInput(t)),
+      window,
+    );
+
+    return expanded.map((o) => this.toView(o));
   }
 
   async findOne(userId: string, id: string): Promise<TaskView> {
@@ -101,6 +117,11 @@ export class TasksService {
       );
     }
 
+    const nextRecurrence = dto.recurrence ?? existing.recurrence;
+    const nextRecurrenceDays =
+      dto.recurrenceDays ?? existing.recurrenceDays ?? [];
+    this.assertRecurrencePayload(nextRecurrence, nextRecurrenceDays);
+
     const updated = await this.prisma.task.update({
       where: { id: existing.id },
       data: {
@@ -112,7 +133,9 @@ export class TasksService {
         priority: dto.priority,
         status: dto.status,
         categoryId: dto.categoryId === null ? null : dto.categoryId,
-        isRecurring: dto.isRecurring,
+        isRecurring: dto.isRecurring ?? nextRecurrence !== Recurrence.NONE,
+        recurrence: dto.recurrence,
+        recurrenceDays: dto.recurrenceDays,
       },
     });
     return this.toView(updated);
@@ -169,6 +192,65 @@ export class TasksService {
     }
   }
 
+  private assertRecurrencePayload(
+    recurrence: Recurrence,
+    days?: number[],
+  ): void {
+    if (recurrence === Recurrence.WEEKLY) {
+      if (!days || days.length === 0) {
+        throw new BadRequestException(
+          'recurrenceDays es obligatorio cuando recurrence=WEEKLY (0=Dom..6=Sab)',
+        );
+      }
+    }
+  }
+
+  private buildWindow(query: FindTasksQueryDto): { from: Date; to: Date } {
+    if (query.fromDate || query.toDate) {
+      const from = query.fromDate
+        ? new Date(query.fromDate)
+        : this.daysAgo(7);
+      const to = query.toDate ? new Date(query.toDate) : this.daysAhead(7);
+      from.setHours(0, 0, 0, 0);
+      to.setHours(23, 59, 59, 999);
+      return { from, to };
+    }
+    return this.recurrence.defaultWindow();
+  }
+
+  private daysAgo(days: number): Date {
+    const d = new Date();
+    d.setDate(d.getDate() - days);
+    return d;
+  }
+
+  private daysAhead(days: number): Date {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
+  private toRecurringInput(task: {
+    id: string;
+    title: string;
+    description: string | null;
+    priority: Priority;
+    status: TaskStatus;
+    categoryId: string | null;
+    userId: string;
+    dueDate: Date | null;
+    startTime: Date | null;
+    endTime: Date | null;
+    isRecurring: boolean;
+    recurrence: Recurrence;
+    recurrenceDays: number[];
+    completedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }): RecurringTaskInput {
+    return { ...task };
+  }
+
   private toView(task: {
     id: string;
     title: string;
@@ -181,6 +263,8 @@ export class TasksService {
     categoryId: string | null;
     userId: string;
     isRecurring: boolean;
+    recurrence: Recurrence;
+    recurrenceDays: number[];
     completedAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
@@ -197,6 +281,8 @@ export class TasksService {
       categoryId: task.categoryId,
       userId: task.userId,
       isRecurring: task.isRecurring,
+      recurrence: task.recurrence,
+      recurrenceDays: task.recurrenceDays,
       completedAt: task.completedAt,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,

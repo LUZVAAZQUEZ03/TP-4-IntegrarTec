@@ -1,14 +1,20 @@
 import {
+  ArrayMaxSize,
+  ArrayUnique,
+  IsArray,
   IsBoolean,
   IsDateString,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
-import { Priority, TaskStatus } from '@prisma/client';
+import { Priority, Recurrence, TaskStatus } from '@prisma/client';
 
 export class CreateTaskDto {
   @IsString()
@@ -48,4 +54,17 @@ export class CreateTaskDto {
   @IsOptional()
   @IsBoolean()
   isRecurring?: boolean;
+
+  @IsOptional()
+  @IsEnum(Recurrence)
+  recurrence?: Recurrence;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(7)
+  @ArrayUnique()
+  @IsInt({ each: true })
+  @Min(0, { each: true })
+  @Max(6, { each: true })
+  recurrenceDays?: number[];
 }

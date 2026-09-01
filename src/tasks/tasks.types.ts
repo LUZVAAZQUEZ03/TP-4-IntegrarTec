@@ -1,4 +1,4 @@
-import type { Priority, TaskStatus } from '@prisma/client';
+import type { Priority, Recurrence, TaskStatus } from '@prisma/client';
 
 export interface TaskView {
   id: string;
@@ -12,6 +12,8 @@ export interface TaskView {
   categoryId: string | null;
   userId: string;
   isRecurring: boolean;
+  recurrence: Recurrence;
+  recurrenceDays: number[];
   completedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
