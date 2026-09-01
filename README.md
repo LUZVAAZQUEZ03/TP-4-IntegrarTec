@@ -229,12 +229,30 @@ Para usar la API desde Swagger o desde un cliente HTTP, primero hay que llamar a
 
 ## 14. Link al deploy
 
-_(Pendiente — Fase 11)_
+- **Render (Blueprint)**: definido en `render.yaml`. Crea el Web Service y la base Postgres automáticamente desde el repo.
+- **Railway** o **Render manual**: equivalentes (Dockerfile funciona en ambos).
+
+Para desplegar con Render:
+
+1. Crear cuenta en [render.com](https://render.com).
+2. **New → Blueprint** → conectar el repo `LUZVAAZQUEZ03/TP-4-IntegrarTec`.
+3. Render detecta `render.yaml` y propone:
+   - Web Service `planify-backend` (Docker, plan Free)
+   - Postgres `planify-postgres` (plan Free, engine 16)
+4. En **Environment** del Web Service, setear `FRONTEND_URL` con el origen del frontend.
+5. Una vez deployado, **Shell** del Web Service y correr `pnpm exec prisma migrate deploy` (o usar el `releaseCommand` del `render.yaml`).
+6. URLs resultantes:
+   - API: `https://planify-backend.onrender.com`
+   - Swagger: `https://planify-backend.onrender.com/docs`
+
+> **Importante**: Render Free tier duerme el servicio tras 15 min de inactividad. Para producción académica está bien; para tráfico real conviene el plan Standard.
+
+> **Secrets**: `JWT_SECRET` y `JWT_REFRESH_SECRET` se generan automáticamente como `generateValue: true`. **Nunca** commitear `.env` real al repo.
 
 ## 15. Link a Swagger
 
 - Local: `http://localhost:3000/docs`
-- Producción: _(Pendiente — Fase 11)_
+- Producción: `https://planify-backend.onrender.com/docs`
 
 ---
 
