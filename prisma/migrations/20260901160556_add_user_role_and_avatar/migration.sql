@@ -1,23 +1,10 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
+-- Migracion incremental: agregar enum Role y columnas avatar + role
+-- a la tabla users ya creada por 20260828054406_create_user.
 
 -- CreateEnum
 CREATE TYPE "roles" AS ENUM ('USER', 'ADMIN');
 
--- CreateTable
-CREATE TABLE "users" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "passwordHash" TEXT NOT NULL,
-    "refreshTokenHash" TEXT,
-    "avatar" TEXT,
-    "role" "roles" NOT NULL DEFAULT 'USER',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "users_pkey" PRIMARY KEY ("id")
-);
-
--- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+-- AlterTable
+ALTER TABLE "users"
+  ADD COLUMN "avatar" TEXT,
+  ADD COLUMN "role" "roles" NOT NULL DEFAULT 'USER';
