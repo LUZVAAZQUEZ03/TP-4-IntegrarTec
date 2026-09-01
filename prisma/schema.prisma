@@ -31,6 +31,17 @@ enum TaskStatus {
   @@map("task_statuses")
 }
 
+enum ReminderType {
+  AT_TIME
+  FIVE_MINUTES
+  FIFTEEN_MINUTES
+  THIRTY_MINUTES
+  ONE_HOUR
+  ONE_DAY
+
+  @@map("reminder_types")
+}
+
 model User {
   id               String   @id @default(uuid())
   name             String
@@ -44,6 +55,7 @@ model User {
 
   tasks      Task[]
   categories Category[]
+  reminders  Reminder[]
 
   @@map("users")
 }
@@ -81,8 +93,28 @@ model Task {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  reminders Reminder[]
+
   @@index([userId])
   @@index([userId, status])
   @@index([userId, dueDate])
   @@map("tasks")
+}
+
+model Reminder {
+  id        String       @id @default(uuid())
+  taskId    String
+  task      Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  remindAt  DateTime
+  type      ReminderType @default(AT_TIME)
+  isSent    Boolean      @default(false)
+  sentAt    DateTime?
+  createdAt DateTime     @default(now())
+
+  @@index([userId])
+  @@index([taskId])
+  @@index([isSent, remindAt])
+  @@map("reminders")
 }
