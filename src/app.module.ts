@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { CategoriesModule } from './categories/categories.module';
 import { TasksModule } from './tasks/tasks.module';
 import { RemindersModule } from './reminders/reminders.module';
+import { StatisticsModule } from './statistics/statistics.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RemindersModule } from './reminders/reminders.module';
     CategoriesModule,
     TasksModule,
     RemindersModule,
+    StatisticsModule,
     HealthModule,
   ],
 })
