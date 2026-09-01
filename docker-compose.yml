@@ -1,12 +1,12 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: agenda-postgres
+    container_name: planify-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-agenda_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agenda_password}
-      POSTGRES_DB: ${POSTGRES_DB:-agenda_db}
+      POSTGRES_USER: ${POSTGRES_USER:-planify_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-planify_password}
+      POSTGRES_DB: ${POSTGRES_DB:-planify_db}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:

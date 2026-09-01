@@ -1,9 +1,13 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# AGENTS.md — Planify backend
 
-# This is NOT the Next.js you know
+Convenciones que cualquier IA debe respetar al trabajar en este repo:
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+- Stack: NestJS 11 + TypeScript + Prisma 7 + PostgreSQL 16.
+- Cada módulo vive en `src/<nombre>` con `*.controller.ts`, `*.service.ts`, `dto/`, `guards/`, `strategies/` según necesidad.
+- Toda ruta privada usa `JwtAuthGuard` (a partir de Fase 2).
+- Los endpoints que reciben datos del cliente usan DTOs con `class-validator`.
+- `ValidationPipe` global ya está activado en `src/main.ts` (whitelist + forbidNonWhitelisted + transform).
+- No hardcodear secretos. Usar `ConfigService` para leer variables de entorno.
+- Convencional Commits: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`.
+- Antes de implementar una fase, leer `spec.md` y `spec-2.0.md` en la carpeta padre.
+- No agregar dependencias innecesarias.

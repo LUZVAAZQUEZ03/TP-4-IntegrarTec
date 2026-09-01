@@ -1,35 +1,45 @@
 {
-  "name": "proyecto-4-integrartec-2026",
+  "name": "planify-backend",
   "version": "0.1.0",
   "private": true,
+  "description": "Backend de Planify: NestJS 11 + Prisma + PostgreSQL",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "prisma": "prisma"
+    "prebuild": "rimraf dist",
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main.js",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "prisma": "prisma",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.10.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
     "@prisma/client": "^7.10.0",
     "bcrypt": "^6.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "dotenv": "^17.4.2",
-    "jose": "^6.2.10",
-    "next": "16.3.3",
-    "pg": "^8.23.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
     "@types/bcrypt": "^6.0.0",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.3",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.0",
     "prisma": "^7.10.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "rimraf": "^6.0.1",
+    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.2"
   }
 }
