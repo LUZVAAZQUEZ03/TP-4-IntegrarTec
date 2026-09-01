@@ -12,8 +12,16 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional } from 'class-validator';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
@@ -21,20 +29,10 @@ import { RemindersService } from './reminders.service';
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
 import type { ReminderView } from './reminders.types';
+import { ListRemindersQueryDto } from './dto/list-reminders-query.dto';
 
-class ListRemindersQueryDto {
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') return undefined;
-    if (typeof value === 'boolean') return value;
-    if (value === 'true' || value === '1') return true;
-    if (value === 'false' || value === '0') return false;
-    return value;
-  })
-  @IsBoolean()
-  pending?: boolean;
-}
-
+@ApiTags('reminders')
+@ApiBearerAuth('access-token')
 @Controller('reminders')
 @UseGuards(JwtAuthGuard)
 export class RemindersController {
@@ -42,6 +40,11 @@ export class RemindersController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Crear recordatorio' })
+  @ApiCreatedResponse({ description: 'Recordatorio creado.' })
+  @ApiForbiddenResponse({
+    description: 'La tarea asociada no pertenece al usuario.',
+  })
   create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateReminderDto,
@@ -50,6 +53,11 @@ export class RemindersController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Listar recordatorios',
+    description: 'Pendientes=true devuelve solo no enviados.',
+  })
+  @ApiOkResponse({ description: 'Listado de recordatorios.' })
   findAll(
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: ListRemindersQueryDto,
@@ -58,6 +66,9 @@ export class RemindersController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener un recordatorio' })
+  @ApiOkResponse({ description: 'Recordatorio encontrado.' })
+  @ApiNotFoundResponse({ description: 'Recordatorio inexistente.' })
   findOne(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -66,6 +77,12 @@ export class RemindersController {
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Actualizar recordatorio' })
+  @ApiOkResponse({ description: 'Recordatorio actualizado.' })
+  @ApiNotFoundResponse({ description: 'Recordatorio inexistente.' })
+  @ApiForbiddenResponse({
+    description: 'La tarea destino no pertenece al usuario.',
+  })
   update(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -76,6 +93,9 @@ export class RemindersController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Eliminar recordatorio' })
+  @ApiNoContentResponse({ description: 'Recordatorio eliminado.' })
+  @ApiNotFoundResponse({ description: 'Recordatorio inexistente.' })
   remove(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', new ParseUUIDPipe()) id: string,
