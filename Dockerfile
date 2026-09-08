@@ -8,6 +8,10 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY prisma ./prisma
 COPY prisma.config.ts tsconfig.json tsconfig.build.json ./
+# Prisma config resolves these variables while generating the client. They are
+# build-only placeholders and are replaced by Render's runtime environment.
+ENV DATABASE_URL=postgresql://build:build@localhost:5432/build
+ENV SHADOW_DATABASE_URL=postgresql://build:build@localhost:5432/build_shadow
 RUN pnpm install --frozen-lockfile
 RUN pnpm exec prisma generate
 
