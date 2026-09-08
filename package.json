@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "description": "Backend de Planify: NestJS 11 + Prisma + PostgreSQL",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "@scarf/scarf",
+      "@swc/core",
+      "bcrypt",
+      "prisma"
+    ]
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
