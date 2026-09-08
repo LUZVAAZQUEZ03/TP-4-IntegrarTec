@@ -8,7 +8,8 @@ RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY prisma ./prisma
 COPY prisma.config.ts tsconfig.json tsconfig.build.json ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --config.onlyBuiltDependencies=@prisma/engines,@scarf/scarf,@swc/core,bcrypt,prisma
+RUN npx prisma generate
 
 FROM node:${NODE_VERSION} AS build
 WORKDIR /app
